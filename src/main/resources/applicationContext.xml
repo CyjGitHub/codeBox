@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:task="http://www.springframework.org/schema/task"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/mvc
+		http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd
+        http://www.springframework.org/schema/tx
+		http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+		http://www.springframework.org/schema/aop
+		http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+        http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+        http://www.springframework.org/schema/context
+		http://www.springframework.org/schema/context/spring-context-3.0.xsd
+		http://www.springframework.org/schema/task
+		http://www.springframework.org/schema/task/spring-task-3.0.xsd">
+
+    <!-- 引入jdbc.properties属性文件 -->
+   <!-- <bean id="propertyConfigurer" class="com.act.dns.command.util.PropertyConfig">
+        <property name="locations">
+            <list>
+                <value>classpath:jdbc.properties</value>
+                &lt;!&ndash; <value>classpath:redis.properties</value> &ndash;&gt;
+                <value>classpath:config.properties</value>
+            </list>
+        </property>
+    </bean>-->
+
+    <bean id="pool" class="com.kilroy.demo.es.pool.EsClientPool" scope="singleton">
+        <constructor-arg value="elasticsearch1_xacs" />
+        <constructor-arg value="172.31.25.174" />
+        <constructor-arg value="9310" />
+        <constructor-arg value="5" />
+    </bean>
+
+    <!-- 数据源配置，这里使用druid数据库连接池提供的数据源 -->
+   <!-- <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource"
+          init-method="init" destroy-method="close">
+        &lt;!&ndash; 配置数据库连接地址 &ndash;&gt;
+        <property name="url" value="${jdbcUrl}" />
+        &lt;!&ndash; 配置数据库用户名 &ndash;&gt;
+        <property name="username" value="${jdbcUsername}" />
+        &lt;!&ndash; 配置数据库密码 &ndash;&gt;
+        <property name="password" value="${jdbcPassword}" />
+        &lt;!&ndash; 配置监控统计拦截的filters &ndash;&gt;
+        <property name="filters" value="stat" />
+        &lt;!&ndash; 配置连接池中的初始化连接数量 &ndash;&gt;
+        <property name="initialSize" value="${jdbcInitialSize}" />
+        &lt;!&ndash; 配置连接池中的最大活动连接数量 &ndash;&gt;
+        <property name="maxActive" value="${jdbcMaxActive}" />
+        &lt;!&ndash; 配置连接池中的最小活动连接数量 &ndash;&gt;
+        <property name="minIdle" value="1" />
+        &lt;!&ndash; 配置获取连接等待超时的时间 &ndash;&gt;
+        <property name="maxWait" value="${jdbcMaxWait}" />
+        &lt;!&ndash; 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒 &ndash;&gt;
+        <property name="timeBetweenEvictionRunsMillis" value="3000" />
+        &lt;!&ndash; 配置一个连接在池中最小生存的时间，单位是毫秒 &ndash;&gt;
+        <property name="minEvictableIdleTimeMillis" value="300000" />
+        &lt;!&ndash; 配置验证查询的SQL语句 &ndash;&gt;
+        <property name="validationQuery" value="select 1 from DUAL" />
+        &lt;!&ndash; 打开验证查询保持数据库连接 &ndash;&gt;
+        <property name="testWhileIdle" value="true" />
+        <property name="testOnBorrow" value="false" />
+        <property name="testOnReturn" value="false" />
+        &lt;!&ndash; 打开PSCache，并且指定每个连接上PSCache的大小 &ndash;&gt;
+        <property name="poolPreparedStatements" value="true" />
+        <property name="maxPoolPreparedStatementPerConnectionSize" value="20" />
+    </bean>-->
+
+   <!-- <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource" />
+        <property name="configLocation" value="classpath:mybatis-config.xml" />
+        <property name="mapperLocations" value="classpath*:mapping/${dbType}/*.xml" />
+    </bean>
+
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.act.dns.ack.dao,com.act.dns.command.dao,com.act.dns.upload.common.dao" />
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
+    </bean>-->
+
+    <!-- 事务配置 -->
+   <!-- <bean id="transactionManager"
+          class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        &lt;!&ndash; 需要进行事务的数据源，要注意，为事务管理器指定的DataSource必须和用来创建SqlSessionFactoryBean的是同一个数据源，否则事务管理器就无法工作了。 &ndash;&gt;
+        &lt;!&ndash;<property name="dataSource" ref="dataSource" />&ndash;&gt;
+    </bean>
+    &lt;!&ndash;通过注解的方式事务代理 &ndash;&gt;
+    <tx:annotation-driven transaction-manager="transactionManager" proxy-target-class="true" order="1" />
+    &lt;!&ndash; 声明式事务配置 &ndash;&gt;
+    &lt;!&ndash;代理配置:对所有*Service结尾的class进行事物管理 &ndash;&gt;
+    <aop:config proxy-target-class="true">
+        <aop:pointcut id="serviceOperation" expression="execution(* com.kilroy.demo..*Impl.*(..))" />
+        <aop:advisor advice-ref="txAdvice" pointcut-ref="serviceOperation" order="2" />
+    </aop:config>
+    &lt;!&ndash;事务策略 &ndash;&gt;
+    <tx:advice id="txAdvice" transaction-manager="transactionManager">
+        <tx:attributes>
+            &lt;!&ndash; 新建 &ndash;&gt;
+            <tx:method name="save*" isolation="READ_COMMITTED"
+                       propagation="REQUIRED" />
+            &lt;!&ndash; 新建 &ndash;&gt;
+            <tx:method name="create*" isolation="READ_COMMITTED"
+                       propagation="REQUIRED" />
+            &lt;!&ndash; 新建 &ndash;&gt;
+            <tx:method name="insert*" isolation="READ_COMMITTED"
+                       propagation="REQUIRED" />
+            &lt;!&ndash; 更新 &ndash;&gt;
+            <tx:method name="update*" propagation="REQUIRED" isolation="READ_COMMITTED" />
+            &lt;!&ndash; 编辑 &ndash;&gt;
+            <tx:method name="edit*" propagation="REQUIRED" isolation="READ_COMMITTED" />
+            &lt;!&ndash; 删除 &ndash;&gt;
+            <tx:method name="delete*" isolation="READ_COMMITTED"
+                       propagation="REQUIRED" />
+            &lt;!&ndash; 执行 &ndash;&gt;
+            <tx:method name="execute*" isolation="READ_COMMITTED"
+                       propagation="REQUIRED" />
+            &lt;!&ndash; 审核，验证 &ndash;&gt;
+            <tx:method name="check*" isolation="READ_COMMITTED"
+                       propagation="REQUIRED" />
+        </tx:attributes>
+    </tx:advice>-->
+
+   <!-- <bean id="baseSpringApplications" class="com.act.dns.ack.common.BaseSpringApplications" scope="singleton"/>
+    <bean id="dbSourceDao" class="com.act.dns.ack.dbutils.DbSourceDao" scope="singleton"/>-->
+
+    <context:annotation-config/>
+    <context:component-scan base-package="com.kilroy.demo" />
+    <mvc:annotation-driven/>
+    <mvc:resources mapping="/img/**" location="/resources/img/**" cache-period="31556926"/>
+    <mvc:resources mapping="/css/**" location="/resources/css/**" cache-period="31556926"/>
+    <mvc:resources mapping="/js/**" location="/resources/js/**" cache-period="31556926"/>
+
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value="/pages/" />
+        <property name="suffix" value=".jsp" />
+    </bean>
+
+</beans>
